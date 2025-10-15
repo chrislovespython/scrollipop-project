@@ -2,6 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, TwitterAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { logger } from "./utils";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_API_KEY,
@@ -23,4 +24,4 @@ export const db = getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
 export const twitterProvider = new TwitterAuthProvider();
 
-console.log("Firebase initialized successfully.");
+logger.log("Firebase initialized successfully.");

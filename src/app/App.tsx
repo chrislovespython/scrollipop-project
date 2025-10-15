@@ -9,7 +9,7 @@ function App() {
       <AppRouter />
       <Toaster />
     </AuthProvider>
-  );
+  )
 }
 
 export default App;

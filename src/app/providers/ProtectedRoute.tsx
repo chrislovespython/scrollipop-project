@@ -18,7 +18,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
-  return <>{children}</>;
+  return (<>{children}</>)
 };
 
 export default ProtectedRoute;

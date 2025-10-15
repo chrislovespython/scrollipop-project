@@ -10,10 +10,11 @@ import {
   arrayRemove,
   getDoc
 } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
 import { db } from './firebase';
 import { logger } from './utils';
 import type { Comment, Post, UserProfile } from './types';
+import { auth } from './firebase';
+import { setDoc, Timestamp } from "firebase/firestore"
 
 // Like/Unlike a post
 export const toggleLikePost = async (postId: string, userId: string): Promise<boolean> => {
@@ -175,7 +176,6 @@ export const getUserById = async (userId: string): Promise<UserProfile | null> =
 export const getCurrentUser = async (): Promise<UserProfile | null> => {
   logger.info('[firebaseActions] Getting current authenticated user');
   try {
-    const auth = getAuth();
     const current = auth.currentUser;
     if (!current) return null;
 
@@ -192,3 +192,30 @@ export const getCurrentUser = async (): Promise<UserProfile | null> => {
     throw error;
   }
 };
+
+export const createOrUpdateUserDoc = async (user: UserProfile) => {
+    if (!user?.uid) return
+    const uid: string = user.uid
+    const displayName: string = user.displayName ?? ""
+    const email: string = user.email ?? ""
+    const photoURL: string = user.photoURL ?? ""
+    // simple username fallback (displayName without spaces OR email local-part) + short uid suffix
+    const baseName = displayName ? displayName.replace(/\s+/g, "").toLowerCase() : email.split("@")[0] ?? "user"
+    const username = `${baseName}-${uid.slice(0, 6)}`
+
+    const userDoc: UserProfile = {
+      uid,
+      username,
+      displayName,
+      email,
+      photoURL,
+      bio: "",
+      createdAt: serverTimestamp() as Timestamp,
+      verified: false,
+      posts: [],
+    }
+
+    // create or merge user doc
+    await setDoc(doc(db, "users", uid), userDoc, { merge: true })
+  }
+

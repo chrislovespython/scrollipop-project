@@ -1,8 +1,5 @@
 import { useState } from "react"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { cn } from "@/lib/utils"
+import { cn, logger } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -13,50 +10,27 @@ import {
 } from "@/components/ui/card"
 import {
   Field,
-  FieldDescription,
   FieldGroup,
-  FieldLabel,
-  FieldSeparator,
 } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-
-const loginSchema = z.object({
-  email: z.string().min(1, "Email is required").email("Invalid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-})
-
-type LoginData = z.infer<typeof loginSchema>
+import { signInWithPopup, GoogleAuthProvider, TwitterAuthProvider } from "firebase/auth"
+import { auth } from "@/lib/firebase"
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginData>({
-    resolver: zodResolver(loginSchema),
-    mode: "onTouched",
-  })
 
-  const onSubmit = async (data: LoginData) => {
-    setLoading(true)
-    try {
-      // Replace with real auth call
-      console.log("submit", data)
-      await new Promise((r) => setTimeout(r, 800))
-      // e.g. router.push("/app")
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setLoading(false)
-    }
-  }
+
 
   const signInWithGoogle = async () => {
     setLoading(true)
     try {
-      console.log("sign in with Google")
-      await new Promise((r) => setTimeout(r, 600))
+      const provider = new GoogleAuthProvider()
+      const result = await signInWithPopup(auth, provider)
+      const user = result.user
+      //await createOrUpdateUserDoc(user)
+      logger.log("Signed in with Google:", user)
+    } catch (err) {
+      logger.error("Google sign-in error", err)
+      //alert(err?.message ?? "Google sign-in failed")
     } finally {
       setLoading(false)
     }
@@ -65,8 +39,18 @@ export default function LoginPage() {
   const signInWithX = async () => {
     setLoading(true)
     try {
-      console.log("sign in with X / Twitter")
-      await new Promise((r) => setTimeout(r, 600))
+      const provider = new TwitterAuthProvider()
+      const result = await signInWithPopup(auth, provider)
+      // Twitter OAuth tokens available via credentialFromResult if needed
+      const credential = TwitterAuthProvider.credentialFromResult(result)
+      const token = credential?.accessToken
+      const secret = credential?.secret
+      const user = result.user
+      //await createOrUpdateUserDoc(user)
+      logger.log("Signed in with X (Twitter):", user, { token, secret })
+    } catch (err) {
+      logger.error("X/Twitter sign-in error", err)
+      //alert(err?.message ?? "X/Twitter sign-in failed")
     } finally {
       setLoading(false)
     }
@@ -77,15 +61,15 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-xl">Welcome back</CardTitle>
+            <CardTitle className="text-xl">Scrollipop – Scroll less. Feel more.</CardTitle>
             <CardDescription>Login with Google or X, or use your email</CardDescription>
           </CardHeader>
 
           <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className={cn("flex flex-col gap-6")}>
+            <form className={cn("flex flex-col gap-1")}>
               <FieldGroup>
                 <Field>
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-2">
                     <Button
                       variant="outline"
                       type="button"
@@ -119,49 +103,10 @@ export default function LoginPage() {
                     </Button>
                   </div>
                 </Field>
-
-                <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
-                  Or continue with email
-                </FieldSeparator>
-
-                <Field>
-                  <FieldLabel htmlFor="email">Email</FieldLabel>
-                  <Input id="email" type="email" placeholder="you@example.com" {...register("email")} />
-                  {errors.email ? (
-                    <FieldDescription className="text-destructive text-sm">{errors.email.message}</FieldDescription>
-                  ) : null}
-                </Field>
-
-                <Field>
-                  <div className="flex items-center">
-                    <FieldLabel htmlFor="password">Password</FieldLabel>
-                    <a href="#" className="ml-auto text-sm underline-offset-4 hover:underline">
-                      Forgot your password?
-                    </a>
-                  </div>
-                  <Input id="password" type="password" placeholder="••••••••" {...register("password")} />
-                  {errors.password ? (
-                    <FieldDescription className="text-destructive text-sm">{errors.password.message}</FieldDescription>
-                  ) : null}
-                </Field>
-
-                <Field>
-                  <Button type="submit" disabled={loading}>
-                    {loading ? "Signing in…" : "Sign in"}
-                  </Button>
-                  <FieldDescription className="text-center">
-                    Don't have an account? <a href="/signup">Sign up</a>
-                  </FieldDescription>
-                </Field>
               </FieldGroup>
             </form>
           </CardContent>
         </Card>
-
-        <FieldDescription className="px-6 text-center mt-4">
-          By continuing you agree to our <a href="#">Terms of Service</a> and{" "}
-          <a href="#">Privacy Policy</a>.
-        </FieldDescription>
       </div>
     </main>
   )

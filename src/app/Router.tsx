@@ -2,10 +2,10 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Feed from "../features/posts/pages/Feed";
 import Login from "../features/auth/pages/Login";
-import Signup from "../features/auth/pages/Signup";
 import Profile from "../features/profiles/pages/Profile";
 import ProtectedRoute from "./providers/ProtectedRoute";
 import ErrorPage from "./ErrorPage";
+import { ThemeProvider } from "./providers/ThemeProvider";
 
 const router = createBrowserRouter([
   {
@@ -30,13 +30,12 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: "/signup",
-    element: <Signup />,
-  },
-  {
     path: "/login",
     element: <Login/>
   }
 ]);
 
-export const AppRouter = () => <RouterProvider router={router} />;
+export const AppRouter = () => <ThemeProvider>
+    <RouterProvider router={router} />
+  </ThemeProvider>
+  

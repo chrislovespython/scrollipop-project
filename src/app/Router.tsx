@@ -16,18 +16,14 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     errorElement: <ErrorPage />,
-    children: [
-        { index: true, element: <Feed /> },
-        { path: "profile/:username", element: <Profile /> },
-        {
-        path: "/search"
-        },
-        {
-        path: "/post/:PostId"
-        }
-      // Add Search page later
-      // { path: "search", element: <Search /> },
-    ],
+  },
+  { path: "/feed", element: <Feed /> },
+  { path: "profile/:username", element: <Profile /> },
+  {
+  path: "/search"
+  },
+  {
+  path: "/post/:PostId"
   },
   {
     path: "/login",

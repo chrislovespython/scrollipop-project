@@ -14,6 +14,9 @@ import {
 } from "@/components/ui/field"
 import { signInWithPopup, GoogleAuthProvider, TwitterAuthProvider } from "firebase/auth"
 import { auth } from "@/lib/firebase"
+import { toast } from "sonner"
+import { createOrUpdateUserDoc } from "@/lib/firebaseActions"
+import { Timestamp } from "firebase/firestore"
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
@@ -26,11 +29,23 @@ export default function LoginPage() {
       const provider = new GoogleAuthProvider()
       const result = await signInWithPopup(auth, provider)
       const user = result.user
-      //await createOrUpdateUserDoc(user)
+      // Build a minimal UserProfile object from the Firebase User and cast to any to satisfy the function signature.
+      await createOrUpdateUserDoc({
+        uid: user.uid,
+        email: user.email ?? "",
+        displayName: user.displayName ?? "",
+        username: user.displayName ?? user.email?.split("@")[0] ?? "",
+        bio: "",
+        photoURL: user.photoURL ?? "",
+        createdAt: Timestamp.now(),
+        verified: false,
+        posts: [],
+      })
       logger.log("Signed in with Google:", user)
+      window.location.href = "/feed"
     } catch (err) {
       logger.error("Google sign-in error", err)
-      //alert(err?.message ?? "Google sign-in failed")
+      toast("Google sign-in failed, Try Again.")
     } finally {
       setLoading(false)
     }
@@ -46,11 +61,22 @@ export default function LoginPage() {
       const token = credential?.accessToken
       const secret = credential?.secret
       const user = result.user
-      //await createOrUpdateUserDoc(user)
+      await createOrUpdateUserDoc({
+        uid: user.uid,
+        email: user.email ?? "",
+        displayName: user.displayName ?? "",
+        username: user.displayName ?? user.email?.split("@")[0] ?? "",
+        bio: "",
+        photoURL: user.photoURL ?? "",
+        createdAt: Timestamp.now(),
+        verified: false,
+        posts: [],
+      })
+      window.location.href = "/feed"
       logger.log("Signed in with X (Twitter):", user, { token, secret })
     } catch (err) {
       logger.error("X/Twitter sign-in error", err)
-      //alert(err?.message ?? "X/Twitter sign-in failed")
+      toast("X/Twitter sign-in failed, Try Again.")
     } finally {
       setLoading(false)
     }
